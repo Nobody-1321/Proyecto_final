@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model Direccion {
+  id_dir       Int    @id @default(autoincrement())
+  calle        String
+  numero       String
+  colonia      String
+  codigoPostal Int
+
+  informacionPersonal InformacionPersonal? @relation("DireccionRelation")
+}
+
+model InformacionPersonal {
+  id_info_per Int    @id @default(autoincrement())
+  nombres     String
+  apellidos   String
+  telefono    String
+  email       String
+  direccionId Int    @unique
+
+  direccion Direccion  @relation("DireccionRelation", fields: [direccionId], references: [id_dir])
+  usuario   Usuario?   @relation("UsuarioRelation")
+
+}
+
+model Usuario {
+  id_usuario    Int      @id @default(autoincrement())
+  infoPersonalId Int      @unique
+  fechaRegistro  DateTime
+  observaciones  String
+
+  informacionPersonal InformacionPersonal @relation("UsuarioRelation", fields: [infoPersonalId], references: [id_info_per])
+  suscripcion Sucripcion? @relation("SuscripcionRelation")
+}
+
+model Sucripcion {
+  id_suscripcion Int    @id @default(autoincrement())
+  fechaInicio    DateTime
+  fechaFin       DateTime
+  usuarioId      Int    @unique
+
+  usuario Usuario @relation("SuscripcionRelation", fields: [usuarioId], references: [id_usuario])
+  pagos   Pago[]  @relation("PagoRelation")
+}
+
+model Pago {
+  id_pago      Int      @id @default(autoincrement())
+  monto        Float
+  fechaPago    DateTime
+  suscripcionId Int      @unique
+
+  suscripcion Sucripcion @relation("PagoRelation", fields: [suscripcionId], references: [id_suscripcion])
+}
